@@ -1,0 +1,9 @@
+[Core]
+Name = Volatility monitor
+Module = vol_monitor
+
+[Documentation]
+Description = Uses volatility to derive contextual information from memory dumps
+Author = Cory Nance
+Version = 0.1
+Website = https://github.com/canance

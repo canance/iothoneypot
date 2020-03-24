@@ -1,0 +1,90 @@
+# docker-compose.yml
+
+version: '3.4'
+
+services:
+
+  iothoneypot:
+    privileged: True
+    cap_add:
+      - ALL
+    build:
+      context: ./iothoneypot
+    restart: "no"
+    network_mode: "host"
+    environment:
+      PGHOST: 127.0.0.1
+      PGUSER: firmadyne
+      PGPASSWORD: firmadyne
+      USER: root
+    command: tail -f /dev/null #/root/run.sh
+    volumes:
+      - ../share/scratch:/root/firmadyne/scratch
+      - ../share:/iothoneypot
+      - /mnt/data:/data
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: firmadyne
+    volumes:
+      - ${PWD}/postgres/:/docker-entrypoint-initdb.d/
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  elasticsearch:
+    build:
+      context: docker-elk/elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./docker-elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: changeme
+    networks:
+      - elk
+
+  logstash:
+    build:
+      context: docker-elk/logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./docker-elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./docker-elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+      - "5044:5044"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    build:
+      context: docker-elk/kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./docker-elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+networks:
+
+  elk:
+    driver: bridge

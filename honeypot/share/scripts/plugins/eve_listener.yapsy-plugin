@@ -1,0 +1,9 @@
+[Core]
+Name = Eve Listener
+Module = eve_listener
+
+[Documentation]
+Description = Watch eve.json and report new flow events to logstash
+Author = Cory Nance
+Version = 0.1
+Website = https://github.com/canance

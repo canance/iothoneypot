@@ -1,0 +1,9 @@
+[Core]
+Name = File monitor
+Module = file_monitor
+
+[Documentation]
+Description = Gathers dropped and modified files from images.
+Author = Cory Nance
+Version = 0.1
+Website = https://github.com/canance
